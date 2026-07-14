@@ -1,4 +1,5 @@
 # trailscript-tracker
+[![CI](https://github.com/nachee/trailscript-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/nachee/trailscript-tracker/actions/workflows/ci.yml)
 
 A lightweight (**6.2 KB gzipped**, zero-config) vanilla-JS tracker that records what real users
 actually *do* on a page — clicks, fills, navigations, selective DOM snapshots — and emits them as
