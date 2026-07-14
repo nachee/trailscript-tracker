@@ -97,8 +97,10 @@
   </div>
 
   <script>
-    // Configure and start tracker
-    window.__ar_config = {
+    // Configure and start tracker. Defer to a config already injected by a test
+    // harness (Playwright's addInitScript runs before page scripts) — assigning
+    // unconditionally here would clobber it and silently ignore the override.
+    window.__trailscript_config = window.__trailscript_config || {
       ingestionUrl: 'http://localhost:3001',
       siteKey: 'sk_test_dev123456'
     };

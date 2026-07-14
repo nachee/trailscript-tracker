@@ -8,7 +8,7 @@ export default {
   output: {
     file: 'dist/tracker.min.js',
     format: 'iife',
-    name: '__ar',
+    name: '__trailscript',
     sourcemap: true,
   },
   plugins: [

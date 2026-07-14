@@ -3,10 +3,10 @@
  * Generates UUID v4 session and tab IDs.
  */
 
-const SESSION_KEY = '__ar_session_id';
-const TAB_KEY = '__ar_tab_id';
-const SEQUENCE_KEY = '__ar_sequence';
-const CHANNEL_NAME = '__ar_session_sync';
+const SESSION_KEY = '__trailscript_session_id';
+const TAB_KEY = '__trailscript_tab_id';
+const SEQUENCE_KEY = '__trailscript_sequence';
+const CHANNEL_NAME = '__trailscript_session_sync';
 
 function uuidv4() {
   return crypto.randomUUID

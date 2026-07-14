@@ -1,6 +1,6 @@
 /**
  * Auto-Regression Tracker — Main entry point.
- * IIFE global: window.__ar
+ * IIFE global: window.__trailscript
  */
 
 import { init as initSession, getSessionId, getTabId, nextSequence, destroy as destroySession, uuidv4 } from './session/session-manager.js';
@@ -96,8 +96,8 @@ function shouldCheckpoint(eventType, payload) {
 function start(config = {}) {
   if (initialized) return;
 
-  const ingestionUrl = config.ingestionUrl || window.__ar_config?.ingestionUrl || '';
-  const siteKey = config.siteKey || window.__ar_config?.siteKey || '';
+  const ingestionUrl = config.ingestionUrl || window.__trailscript_config?.ingestionUrl || '';
+  const siteKey = config.siteKey || window.__trailscript_config?.siteKey || '';
 
   if (!ingestionUrl || !siteKey) {
     console.warn('[AutoRegression] Missing ingestionUrl or siteKey');
@@ -195,9 +195,9 @@ function stop() {
   destroySession();
 }
 
-// Auto-start when __ar_config is present (set by tracking snippet)
-if (typeof window !== 'undefined' && window.__ar_config) {
-  start(window.__ar_config);
+// Auto-start when __trailscript_config is present (set by tracking snippet)
+if (typeof window !== 'undefined' && window.__trailscript_config) {
+  start(window.__trailscript_config);
 }
 
 // Export API

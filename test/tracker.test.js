@@ -34,7 +34,7 @@ test.describe('Tracker Integration', () => {
   test.beforeEach(async ({ page }) => {
     // Override tracker config to point to intercepted routes
     await page.addInitScript(() => {
-      window.__ar_config = {
+      window.__trailscript_config = {
         ingestionUrl: 'http://localhost:9999',
         siteKey: 'sk_test_integration',
       };
@@ -302,18 +302,35 @@ test.describe('Tracker Integration', () => {
     expect(cp).toHaveProperty('url');
   });
 
-  test('X-Site-Key header is sent with requests', async ({ page }) => {
-    let siteKeyHeader = null;
+  test('site key is transmitted with requests', async ({ page }) => {
+    // The site key travels one of two ways depending on the transport that wins:
+    // `sendBeacon` (the primary path) cannot set custom headers, so the key is
+    // carried in the body as `site_key`; the `fetch` fallback sets the
+    // `X-Site-Key` header instead. Either is a valid, authenticated request —
+    // asserting only the header would fail on the happy (beacon) path.
+    let siteKeySeen = null;
+
+    const captureSiteKey = (request) => {
+      if (siteKeySeen) return;
+      const header = request.headers()['x-site-key'];
+      if (header) {
+        siteKeySeen = header;
+        return;
+      }
+      try {
+        siteKeySeen = JSON.parse(request.postData() || '{}').site_key || null;
+      } catch {
+        // Non-JSON body — leave unset.
+      }
+    };
 
     await page.route('**/api/v1/events', async (route) => {
-      siteKeyHeader = route.request().headers()['x-site-key'];
+      captureSiteKey(route.request());
       await route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ accepted: 0, rejected: 0 }) });
     });
 
     await page.route('**/api/v1/checkpoints', async (route) => {
-      if (!siteKeyHeader) {
-        siteKeyHeader = route.request().headers()['x-site-key'];
-      }
+      captureSiteKey(route.request());
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ checkpoint_id: 'mock' }) });
     });
 
@@ -321,7 +338,7 @@ test.describe('Tracker Integration', () => {
     await page.click('#primary-btn');
     await page.waitForTimeout(3000);
 
-    expect(siteKeyHeader).toBe('sk_test_integration');
+    expect(siteKeySeen).toBe('sk_test_integration');
   });
 
   test('captures click-settle checkpoint after non-navigation click', async ({ page }) => {
