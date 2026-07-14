@@ -302,43 +302,59 @@ test.describe('Tracker Integration', () => {
     expect(cp).toHaveProperty('url');
   });
 
-  test('site key is transmitted with requests', async ({ page }) => {
-    // The site key travels one of two ways depending on the transport that wins:
-    // `sendBeacon` (the primary path) cannot set custom headers, so the key is
-    // carried in the body as `site_key`; the `fetch` fallback sets the
-    // `X-Site-Key` header instead. Either is a valid, authenticated request —
-    // asserting only the header would fail on the happy (beacon) path.
-    let siteKeySeen = null;
+  // The site key travels differently depending on which transport wins, so each
+  // path is pinned separately. Asserting only "the key arrived somehow" would
+  // stay green if one of the two carriers silently regressed.
+  //
+  //   sendBeacon (primary)  — cannot set custom headers, so the key rides in
+  //                           the request BODY as `site_key`.
+  //   fetch      (fallback) — sets the `X-Site-Key` HEADER.
 
-    const captureSiteKey = (request) => {
-      if (siteKeySeen) return;
-      const header = request.headers()['x-site-key'];
-      if (header) {
-        siteKeySeen = header;
-        return;
-      }
+  async function captureSiteKeyCarriers(page) {
+    const seen = { header: null, body: null };
+    const capture = (request) => {
+      seen.header ??= request.headers()['x-site-key'] ?? null;
       try {
-        siteKeySeen = JSON.parse(request.postData() || '{}').site_key || null;
+        seen.body ??= JSON.parse(request.postData() || '{}').site_key ?? null;
       } catch {
         // Non-JSON body — leave unset.
       }
     };
-
     await page.route('**/api/v1/events', async (route) => {
-      captureSiteKey(route.request());
+      capture(route.request());
       await route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ accepted: 0, rejected: 0 }) });
     });
-
     await page.route('**/api/v1/checkpoints', async (route) => {
-      captureSiteKey(route.request());
+      capture(route.request());
       await route.fulfill({ status: 201, contentType: 'application/json', body: JSON.stringify({ checkpoint_id: 'mock' }) });
     });
+    return seen;
+  }
+
+  test('site key rides in the body on the sendBeacon path', async ({ page }) => {
+    const seen = await captureSiteKeyCarriers(page);
 
     await page.goto(`file://${process.cwd()}/${TEST_PAGE}`);
     await page.click('#primary-btn');
     await page.waitForTimeout(3000);
 
-    expect(siteKeySeen).toBe('sk_test_integration');
+    expect(seen.body).toBe('sk_test_integration');
+    // Not an incidental detail — it's *why* the key is in the body at all.
+    expect(seen.header).toBeNull();
+  });
+
+  test('site key rides in the X-Site-Key header when sendBeacon is unavailable', async ({ page }) => {
+    // Force the fetch fallback by making sendBeacon report failure.
+    await page.addInitScript(() => {
+      navigator.sendBeacon = () => false;
+    });
+    const seen = await captureSiteKeyCarriers(page);
+
+    await page.goto(`file://${process.cwd()}/${TEST_PAGE}`);
+    await page.click('#primary-btn');
+    await page.waitForTimeout(3000);
+
+    expect(seen.header).toBe('sk_test_integration');
   });
 
   test('captures click-settle checkpoint after non-navigation click', async ({ page }) => {
