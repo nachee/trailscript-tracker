@@ -1,5 +1,5 @@
 /**
- * Auto-Regression Tracker — Main entry point.
+ * TrailScript Tracker — Main entry point.
  * IIFE global: window.__trailscript
  */
 
@@ -100,7 +100,7 @@ function start(config = {}) {
   const siteKey = config.siteKey || window.__trailscript_config?.siteKey || '';
 
   if (!ingestionUrl || !siteKey) {
-    console.warn('[AutoRegression] Missing ingestionUrl or siteKey');
+    console.warn('[TrailScript] Missing ingestionUrl or siteKey');
     return;
   }
 
