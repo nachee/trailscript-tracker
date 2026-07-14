@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tracker Test Page</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+    button { padding: 8px 16px; margin: 4px; cursor: pointer; }
+    input, select, textarea { padding: 8px; margin: 4px; width: 200px; }
+    label { display: block; margin: 8px 0 4px; }
+    .nav-links a { margin-right: 16px; color: #0066cc; }
+    iframe { width: 100%; height: 200px; border: 1px solid #ccc; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>Auto-Regression Tracker Test Page</h1>
+
+  <div class="section nav-links">
+    <h2>Navigation</h2>
+    <a href="#home">Home</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+    <button id="spa-nav" onclick="history.pushState({}, '', '#dashboard')">SPA Navigate</button>
+  </div>
+
+  <div class="section">
+    <h2>Buttons</h2>
+    <button id="primary-btn" data-testid="primary-action" class="primary">Primary Action</button>
+    <button id="secondary-btn" aria-label="Secondary Action">Secondary</button>
+    <button id="delete-btn" class="danger" onclick="confirm('Are you sure?')">Delete</button>
+  </div>
+
+  <div class="section">
+    <h2>Form</h2>
+    <form id="test-form" onsubmit="event.preventDefault(); alert('Form submitted!')">
+      <label for="email">Email</label>
+      <input type="email" id="email" name="email" placeholder="Enter your email" data-testid="email-input">
+
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" placeholder="Enter your password">
+
+      <label for="pin">PIN Code</label>
+      <input type="text" id="pin" name="pin_code" placeholder="Enter PIN">
+
+      <label for="secret-field">Secret</label>
+      <input type="text" id="secret-field" name="secret_key" autocomplete="off">
+
+      <label for="name">Full Name</label>
+      <input type="text" id="name" name="name" placeholder="Your name" aria-label="Full Name">
+
+      <label for="role">Role</label>
+      <select id="role" name="role">
+        <option value="">Select a role</option>
+        <option value="admin">Admin</option>
+        <option value="user">User</option>
+        <option value="viewer">Viewer</option>
+      </select>
+
+      <label>
+        <input type="checkbox" id="terms" name="terms"> I agree to the terms
+      </label>
+
+      <label for="bio">Bio</label>
+      <textarea id="bio" name="bio" placeholder="Tell us about yourself" rows="3"></textarea>
+
+      <br>
+      <button type="submit" data-testid="submit-form">Submit Form</button>
+    </form>
+  </div>
+
+  <div class="section">
+    <h2>File Upload</h2>
+    <input type="file" id="file-upload" data-testid="file-upload" multiple>
+  </div>
+
+  <div class="section">
+    <h2>Drag and Drop</h2>
+    <div id="drag-source" draggable="true" style="padding: 20px; background: #e0e0e0; display: inline-block; cursor: grab;">
+      Drag me
+    </div>
+    <div id="drop-target" style="padding: 20px; background: #f0f0f0; display: inline-block; margin-left: 20px; min-width: 100px; border: 2px dashed #aaa;">
+      Drop here
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Iframe</h2>
+    <iframe id="test-iframe" title="Test Iframe" srcdoc="
+      <html><body>
+        <h3>Inside Iframe</h3>
+        <button id='iframe-btn'>Click in Iframe</button>
+        <input type='text' placeholder='Type in iframe'>
+      </body></html>
+    "></iframe>
+  </div>
+
+  <script>
+    // Configure and start tracker
+    window.__ar_config = {
+      ingestionUrl: 'http://localhost:3001',
+      siteKey: 'sk_test_dev123456'
+    };
+  </script>
+  <script src="../dist/tracker.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,31 @@
+{
+  "name": "trailscript-tracker",
+  "version": "0.1.0",
+  "description": "Lightweight (<20KB gzipped) vanilla-JS tracker that captures user interactions — clicks, fills, navigation, selective DOM checkpoints — with ranked, resilient selector strategies for downstream E2E test generation.",
+  "license": "MIT",
+  "main": "dist/tracker.min.js",
+  "keywords": [
+    "tracking",
+    "analytics",
+    "user-interactions",
+    "session-recording",
+    "playwright",
+    "e2e",
+    "selectors",
+    "rrweb"
+  ],
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c --watch",
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "rollup": "^4.9.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "@rollup/plugin-node-resolve": "^15.2.3",
+    "@playwright/test": "^1.41.0"
+  },
+  "dependencies": {
+    "rrweb-snapshot": "^2.0.0-alpha.13"
+  }
+}
