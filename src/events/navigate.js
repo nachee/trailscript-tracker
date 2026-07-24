@@ -1,3 +1,5 @@
+import { normalizeUrl } from '../normalisation/url.js';
+
 let lastUrl = '';
 
 export function initNavigateCapture(emit) {
@@ -45,6 +47,8 @@ export function initNavigateCapture(emit) {
 }
 
 function onUrlChange(emit, trigger) {
+  // Compare on the raw href so query/fragment-only changes still register as a
+  // navigation; only the emitted values are normalised (P1-1).
   const newUrl = location.href;
   if (newUrl === lastUrl) return;
 
@@ -52,8 +56,8 @@ function onUrlChange(emit, trigger) {
   lastUrl = newUrl;
 
   emit('navigation', null, {
-    to_url: newUrl,
-    from_url: fromUrl,
+    to_url: normalizeUrl(newUrl),
+    from_url: normalizeUrl(fromUrl),
     trigger,
   });
 }

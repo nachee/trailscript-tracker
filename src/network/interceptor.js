@@ -4,6 +4,7 @@
  */
 
 import { addApiCall } from '../checkpoints/checkpoint.js';
+import { normalizeUrl } from '../normalisation/url.js';
 
 export function initNetworkInterceptor(emit) {
   interceptFetch(emit);
@@ -118,19 +119,5 @@ function shouldCapture(url) {
     return parsed.origin === location.origin;
   } catch {
     return false;
-  }
-}
-
-function normalizeUrl(url) {
-  // M-1: drop the query string entirely. Query params routinely carry secrets
-  // (?token=, ?reset=, session ids), and downstream URL normalisation
-  // (analysis/src/normalisation/url_normaliser.py) already discards the query,
-  // so keeping the path-only form loses nothing for flow analysis.
-  try {
-    const parsed = new URL(url, location.origin);
-    return parsed.pathname;
-  } catch {
-    // Fallback for values that don't parse as URLs: strip anything after '?'.
-    return String(url).split('?')[0];
   }
 }
