@@ -4,6 +4,7 @@
  */
 
 import { redactPII } from '../normalisation/redact.js';
+import { normalizeUrl } from '../normalisation/url.js';
 
 /**
  * Extract all selector strategies for a DOM element.
@@ -175,7 +176,10 @@ function extractAttributes(el) {
     type: el.getAttribute('type') || null,
     'data-testid': el.getAttribute('data-testid') || null,
     'aria-label': el.getAttribute('aria-label') || null,
-    href: el.getAttribute('href') || null,
+    // P1-2: keep scheme+host+path for selector/analysis use, but drop the
+    // query/fragment (normalizeUrl) and redact any residual PII a mailto:/tel:
+    // href would otherwise leak verbatim.
+    href: redactPII(normalizeUrl(el.getAttribute('href'))) || null,
   };
 }
 

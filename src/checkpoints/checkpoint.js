@@ -1,13 +1,15 @@
 /**
- * DOM checkpoint capture using rrweb-snapshot for selective snapshots.
- * Captures visible elements, form values, focused element, page title,
- * recent API calls, and console errors.
+ * DOM checkpoint capture. Captures a curated allowlist of the page: significant
+ * visible elements, form values, focused element, page title, recent API calls,
+ * and console errors. It does NOT take a full-DOM snapshot — `full_snapshot_url`
+ * is always null — so no unbounded page markup ever leaves the browser.
  */
 
 import { extractSelectors } from '../selectors/extract.js';
 import { uuidv4 } from '../session/session-manager.js';
 import { syntheticValue } from '../normalisation/synthetic.js';
-import { redactPII } from '../normalisation/redact.js';
+import { redactPII, redactMessage } from '../normalisation/redact.js';
+import { normalizeUrl } from '../normalisation/url.js';
 
 let recentApiCalls = [];
 let consoleErrors = [];
@@ -28,7 +30,8 @@ export function initConsoleCapture() {
   console.error = function (...args) {
     addConsoleError({
       level: 'error',
-      message: args.map((a) => String(a)).join(' '),
+      // P1-3: console args often echo user input / tokens — redact + cap.
+      message: redactMessage(args.map((a) => String(a)).join(' ')),
       source: 'console',
     });
     return origError.apply(this, args);
@@ -37,7 +40,7 @@ export function initConsoleCapture() {
   window.addEventListener('error', (e) => {
     addConsoleError({
       level: 'error',
-      message: e.message || 'Unknown error',
+      message: redactMessage(e.message || 'Unknown error'),
       source: e.filename ? 'script' : 'unknown',
     });
   });
@@ -45,7 +48,7 @@ export function initConsoleCapture() {
   window.addEventListener('unhandledrejection', (e) => {
     addConsoleError({
       level: 'error',
-      message: e.reason ? String(e.reason) : 'Unhandled promise rejection',
+      message: redactMessage(e.reason ? String(e.reason) : 'Unhandled promise rejection'),
       source: 'promise',
     });
   });
@@ -65,7 +68,8 @@ export function captureCheckpoint(triggerEventId, sessionId, clickTarget) {
     session_id: sessionId,
     trigger_event_id: triggerEventId,
     timestamp: new Date().toISOString(),
-    url: location.href,
+    // P1-1: keep origin+pathname only — drop query string + fragment.
+    url: normalizeUrl(location.href),
     visible_elements: captureVisibleElements(),
     form_values: captureFormValues(),
     focused_element: captureFocusedElement(),

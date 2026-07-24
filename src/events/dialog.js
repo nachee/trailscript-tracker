@@ -1,4 +1,5 @@
 import { DEFAULT_SYNTHETIC } from '../normalisation/synthetic.js';
+import { redactMessage } from '../normalisation/redact.js';
 
 export function initDialogCapture(emit) {
   // Native browser dialogs (alert, confirm, prompt, beforeunload)
@@ -8,10 +9,13 @@ export function initDialogCapture(emit) {
   const origConfirm = window.confirm;
   const origPrompt = window.prompt;
 
+  // P1-3: dialog message text is site-authored but frequently interpolates user
+  // data (order numbers, emails). Redact + cap before it leaves the browser.
+  // The synthetic `input_value` handling below is already safe and unchanged.
   window.alert = function (message) {
     emit('dialog', null, {
       dialog_type: 'alert',
-      message: String(message),
+      message: redactMessage(String(message)),
       response: 'OK',
     });
     return origAlert.call(this, message);
@@ -21,7 +25,7 @@ export function initDialogCapture(emit) {
     const result = origConfirm.call(this, message);
     emit('dialog', null, {
       dialog_type: 'confirm',
-      message: String(message),
+      message: redactMessage(String(message)),
       response: result ? 'OK' : 'Cancel',
     });
     return result;
@@ -31,7 +35,7 @@ export function initDialogCapture(emit) {
     const result = origPrompt.call(this, message, defaultValue);
     emit('dialog', null, {
       dialog_type: 'prompt',
-      message: String(message),
+      message: redactMessage(String(message)),
       response: result !== null ? 'OK' : 'Cancel',
       input_value: result !== null ? DEFAULT_SYNTHETIC : null,
     });
@@ -41,7 +45,7 @@ export function initDialogCapture(emit) {
   window.addEventListener('beforeunload', (e) => {
     emit('dialog', null, {
       dialog_type: 'beforeunload',
-      message: e.returnValue || '',
+      message: redactMessage(e.returnValue || ''),
     });
   });
 }

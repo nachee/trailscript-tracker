@@ -46,3 +46,25 @@ export function redactPII(text) {
   }
   return out;
 }
+
+/** Default cap for free-text diagnostic messages (console errors, dialogs). */
+export const MAX_MESSAGE_LEN = 500;
+
+/**
+ * Sanitise a free-text diagnostic message (P1-3): redact PII, then cap length.
+ *
+ * Console errors, window.onerror messages, unhandled-rejection reasons, and
+ * native dialog text are attacker-uncontrolled but frequently echo user input
+ * (a failed request URL with a token, a validation error quoting an email), so
+ * they must be redacted and length-bounded before buffering.
+ *
+ * @param {string} text
+ * @param {number} [maxLen=MAX_MESSAGE_LEN]
+ * @returns {string} redacted, length-capped message
+ */
+export function redactMessage(text, maxLen = MAX_MESSAGE_LEN) {
+  const redacted = redactPII(typeof text === 'string' ? text : String(text ?? ''));
+  return typeof redacted === 'string' && redacted.length > maxLen
+    ? redacted.slice(0, maxLen)
+    : redacted;
+}

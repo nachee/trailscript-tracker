@@ -23,7 +23,8 @@
     "rollup": "^4.9.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-node-resolve": "^15.2.3",
-    "@playwright/test": "^1.41.0"
+    "@playwright/test": "^1.41.0",
+    "serve": "^14.2.4"
   },
   "dependencies": {
     "rrweb-snapshot": "^2.0.0-alpha.13"

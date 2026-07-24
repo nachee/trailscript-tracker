@@ -1,5 +1,5 @@
 /**
- * TrailScript Tracker — Main entry point.
+ * trailscript Tracker — Main entry point.
  * IIFE global: window.__trailscript
  */
 
@@ -17,6 +17,7 @@ import { initDialogCapture } from './events/dialog.js';
 import { initNetworkInterceptor } from './network/interceptor.js';
 import { captureCheckpoint, initConsoleCapture } from './checkpoints/checkpoint.js';
 import { initTransport, queueEvent, queueCheckpoint, destroy as destroyTransport } from './transport/transport.js';
+import { normalizeUrl } from './normalisation/url.js';
 
 let initialized = false;
 let checkpointObserver = null;
@@ -43,7 +44,9 @@ function emit(eventType, target, payload, rawElement) {
     timestamp: new Date().toISOString(),
     event_type: eventType,
     page: {
-      url: location.href,
+      // P1-1: keep origin+pathname only — drop query string + fragment, which
+      // routinely carry tokens/session ids, before the event leaves the browser.
+      url: normalizeUrl(location.href),
       title: document.title,
       viewport: { width: window.innerWidth, height: window.innerHeight },
     },
@@ -100,7 +103,7 @@ function start(config = {}) {
   const siteKey = config.siteKey || window.__trailscript_config?.siteKey || '';
 
   if (!ingestionUrl || !siteKey) {
-    console.warn('[TrailScript] Missing ingestionUrl or siteKey');
+    console.warn('[trailscript] Missing ingestionUrl or siteKey');
     return;
   }
 
@@ -132,7 +135,7 @@ function start(config = {}) {
 
   // Emit initial navigation event
   emit('navigation', null, {
-    to_url: location.href,
+    to_url: normalizeUrl(location.href),
     trigger: 'page_load',
   });
 }
